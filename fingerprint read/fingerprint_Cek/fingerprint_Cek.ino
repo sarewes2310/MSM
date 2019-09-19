@@ -28,14 +28,19 @@ boolean keadaan = false;
 void setup(void) 
 {
     led_inisialisasi(7);
+    led_inisialisasi(9);
+    led_inisialisasi(10);
     cek_led(7,1);     
+    cek_led(9,1);
+    cek_led(10,1);
+    delay(1);
+    cek_led(9,0);
+    cek_led(10,0);
     Serial.begin(115200);
     //Serial.begin(9600);
     //checking semua sensor
     cek_inisialisasi_sdcard();
     cek_inisialisasi_fingerprint();
-    led_inisialisasi(9);
-    led_inisialisasi(10);
     relay_inisialisasi();
     cek_inisialisasi_nfc();
 }
