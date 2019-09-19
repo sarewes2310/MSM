@@ -12,28 +12,34 @@ void open_files(String nama, boolean cek){
 	Serial.println("RUNNN OPENFILES "+nama);
 	if (SD.exists(nama)) {
 		Serial.println(nama + " ada.");
-		myFile = cek == 0 ? SD.open(nama, FILE_WRITE) : SD.open(nama, FILE_READ);
+		//myFile = cek == 0 ? SD.open(nama, FILE_WRITE) : SD.open(nama, FILE_READ);
+		if(cek == 1) myFile = SD.open(nama, FILE_READ);
+		else myFile = SD.open(nama, FILE_WRITE);
 	}else {
+		if(cek == 1) myFile = SD.open(nama, FILE_READ);
+		else myFile = SD.open(nama, FILE_WRITE);
 		Serial.println(nama + " membuat file.");
 	}
+	Serial.println(myFile);
 }
 
 int write_files(String data, int cek)
 {
 	if (myFile)
 	{
-		if(cek == 0)myFile.print(data);
+		//Serial.println(F("Write FILES RUNN"));
+		if(cek == 0) myFile.print(data);
 		else myFile.println(data);
-		myFile.close();
 		return 1;
 	}else
 	{
-		//Serial.println("Error opening");
+		Serial.println("Error opening");
 		return 0;
 	}
 }
 
-void read_files(String nama){
+void read_files(String nama)
+{
   	//myFile = SD.open(nama, FILE_WRITE);
 	if(myFile){
 		while (myFile.available()) {
@@ -45,51 +51,45 @@ void read_files(String nama){
 	}
 }
 
-void check_file(String nama, int &nama_file, int &total, boolean &cek)
+void check_file(String namaku, int &nama_file, int &total, boolean &cek)
 {
-	String data[2];
+	String data[3];
   	int panjang = 0;
+  	data[1] = "";
+  	data[2] = "";
+  	cek = false;
   	if(myFile)
   	{
   		int z = 0;
     	String parse_data[12];
     	while (myFile.available())
     	{
-    		String list = myFile.readStringUntil('\n');
-        	for (int i = 0; i < list.length(); ++i)
-        	{
-          		if(isAlphaNumeric(list[i]))
-          		{
-            		parse_data[z] += list[i];
-          		}else
-          		{
-		            //int z = list[i];
-		            //Serial.println(z);
-		            if(list[i] == 13 || list[i] == 10 || list[i] == 59 || list[i] == 244)
-		            {
-		            	z++;
-		              	//Serial.println("RUNN");
-		            }else parse_data[z] += list[i];
-          		}
-        	}
-        	panjang = z;
-    	}
-	    for(int i = 0; i < panjang; ++i)
-	    {
-	    	boolean b = false;
+    		//String list = myFile.readStringUntil('\n'); //MODE Debugging (test_s.txt)
+            String list = myFile.readStringUntil(';'); //MODE Debugging (test_1.txt)
+            //Serial.println(t);
+            Serial.print(F("LIST_VALUE:"));
+		    Serial.println(list);
+
+        	boolean b = false;
 		    int a = 0; //inisialisasi awal dari index data
-		    Serial.println(parse_data[i].indexOf(nama));
-		    if(parse_data[i].indexOf(nama) != -1)
+		    //Serial.println(parse_data[i].indexOf(namaku));
+		    //Serial.println("RUNN check_file");
+		    if(list.indexOf(namaku) == 0)
 		    {
-		    	String list = parse_data[i];
-		        for (int j = 0; j < parse_data[i].length(); ++j)
+		    	//String data_list = list; //Mode Debugging
+		        for (int j = 0; j < list.length(); j++)
 		        {
 		        	if(b)
 		          	{
 		            	if(isAlphaNumeric(list[j]))
 		            	{
-		              		data[a] += (list[j]);
-		              		cek = true;
+		              		data[a] += (list[j]); 
+		              		//Serial.print(a);
+		              		//Serial.print(" ");
+		              		//Serial.print(list[j]);
+		              		//Serial.println();
+		              		//if(a == 1) nama_file = list[j].toInt();
+		              		//else total = list[j].toInt();
 		            	}
 		          	}
 		          	if(!isAlphaNumeric(list[j]))
@@ -98,6 +98,8 @@ void check_file(String nama, int &nama_file, int &total, boolean &cek)
 		            	a++;
 		          	}
 		        }
+		        cek = true;
+		        //Serial.println(cek);
 		        break;
 		    }
 		    else
@@ -107,70 +109,125 @@ void check_file(String nama, int &nama_file, int &total, boolean &cek)
 		        //Serial.println("RUNNNN");
 		        cek = false;
 		    }
-	    }
-  	}else{
-    	Serial.println("Error opening " + nama + ".txt");
-  	}
-  	total = data[1].toInt(); //Output menampilkan jumlah total data fingerprint
-  	nama_file = data[0].toInt(); //Output menampilkan nama file data tempat menyimpan fingerprint
-}
-
-String rewrite_file(String nama, int nama_file, int total)
-{
-  	String data = "";
-  	int panjang = 0;
-  	if(myFile)
-  	{
-	    String parse_data[12];
-	    int z = 0;
-	    while (myFile.available())
-	    {
-	    	String list = myFile.readStringUntil('\n');
-	      	for (int i = 0; i < list.length(); ++i)
-	      	{
-	      		if(isAlphaNumeric(list[i]))
-	        	{
-	          		parse_data[z] += list[i];
-	        	}else
-	        	{
-	          		//int x = list[i];
-		          	if(list[i] == 13 || list[i] == 10 || list[i] == 59 || list[i] == 244){
-		            	z++;
-		            	//Serial.println("RUNN");
-		          	}
-		          	else parse_data[z] += list[i];
-	        	}
-	        	//Serial.println(parse_data[z]);
-	      	}
-	      	panjang = z;
-	    } 
-
+    	}
+     	/*
+    	//Serial.println(parse_data[1]);
 	    for(int i = 0; i < panjang; ++i)
 	    {
-	    	if(parse_data[i].indexOf(nama))
-	      	{
-	        	data += parse_data[i];
-	        	data += ";"; //hanya digunakan untuk debugging
-	      	}else
-	      	{
-	        	//Serial.println(parse_data[i].indexOf(nama));
-	        	data += nama;
-	        	data += ":";
-	        	data += String(nama_file);
-	        	data += ",";
-	        	data += String(total);
-	        	data += ";";
-	      	}
-	    }
-  	}else
-  	{
-    	Serial.println("Error opening " + nama + ".txt");
+	    	boolean b = false;
+		    int a = 0; //inisialisasi awal dari index data
+		    Serial.println(parse_data[i].indexOf(namaku));
+		    //Serial.println("RUNN check_file");
+		    if(parse_data[i].indexOf(namaku) == 0)
+		    {
+		    	String list = parse_data[i];
+		        for (int j = 0; j < parse_data[i].length(); ++j)
+		        {
+		        	if(b)
+		          	{
+		            	if(isAlphaNumeric(list[j]))
+		            	{
+		              		data[a] += (list[j]);
+		              		//Serial.print(a);
+		              		//Serial.print(" ");
+		              		//Serial.print(list[j]);
+		              		//Serial.println();
+		              		//if(a == 1) nama_file = list[j].toInt();
+		              		//else total = list[j].toInt();
+		            	}
+		          	}
+		          	if(!isAlphaNumeric(list[j]))
+		          	{
+		            	b = true;
+		            	a++;
+		          	}
+		        }
+		        cek = true;
+		        break;
+		    }
+		    else
+		    {
+		    	//Serial.println(parse_data[i].indexOf(nama));
+		        //data += (nama + ":" + String(nama_file) + "," + String(total));
+		        //Serial.println("RUNNNN");
+		        cek = false;
+		    }
+	    }*/
+  	}else{
+    	Serial.println("Error opening " + namaku + ".txt");
   	}
-  	return data;
+  	total = data[2].toInt(); //Output menampilkan jumlah total data fingerprint
+  	nama_file = data[1].toInt(); //Output menampilkan nama file data tempat menyimpan fingerprint
+  	//Serial.println(total);
+  	//Serial.println(nama_file);
+  	//Serial.println(cek);
+}
+
+String rewrite_file(String name_ektp, int nama_file, int total)
+{
+	//Serial.println("RUNN rewrite_file");
+	//Serial.println(nama);
+    String dataku = "";
+    int panjang = 0;
+    String nama_file_parse = String(nama_file);
+    String total_parse = String(total);
+    if(myFile)
+    {
+        //int z = 0;
+        while (myFile.available())
+    	{
+    		//String list = myFile.readStringUntil('\n'); //MODE Debugging (test_s.txt)
+            String list = myFile.readStringUntil(';'); //MODE Debugging (test_1.txt)
+            //Serial.println(list);
+            int ceking_index = list.indexOf(name_ektp);
+            if(ceking_index == -1)
+            {
+            	//dataku += "2"; // Mode debugging
+            	dataku += list; 
+            	dataku += ";";
+            	Serial.println(list);
+            }else
+            {
+            	//Serial.println("COEG");
+            	dataku += name_ektp;
+                dataku += ":";
+                dataku += nama_file_parse;
+                dataku += ",";
+                dataku += total_parse;
+                dataku += ";";
+                //dataku += "3"; // Mode Debugging
+                //dataku += ";"; // Mode Debugging
+            }
+            delay(1000);
+    	}
+    }else
+    {
+        Serial.println("Error opening test_1.txt");
+    }
+    //Serial.print(F("dataku = ")); //Mode Debugging
+    //Serial.println(dataku); //Mode Debugging
+    //Serial.println(dataku.length()); //Mode Debugging
+    return dataku;
+}
+
+void check_jumlah_ektp(int &total)
+{
+	String jumlah_all = "";
+	if(myFile)
+	{
+		while (myFile.available())
+		{
+			jumlah_all = myFile.readStringUntil(';'); 
+		}
+		total = jumlah_all.toInt();
+	}else
+    {
+        Serial.println("Error opening file");
+    }
 }
 
 void close_connection()
-{
+{	
 	myFile.close();
 }
 

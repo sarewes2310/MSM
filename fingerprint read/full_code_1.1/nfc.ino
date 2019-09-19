@@ -32,49 +32,46 @@ void check_nfc()
             String nameku = "";
             if (success)
             {
+                //Debugging
                 for(int i=0;i<uidLength;i++){
                     nameku += String(uid[i]);
                 }
                 //Serial.println(nameku); //Value: 4991461381872128 nilai dari EKTP
                 delay(1000);
-                
-                /* Inisialisasi variabel */
                 open_files("test_1.txt", 1); //Buka file tempat meyimpan data index file dengan permission READ
                 int total,nama_file; //inisialisasi
                 boolean cek_k;
-                
-                /* Cek data EKTP */
                 check_file(nameku,nama_file,total,cek_k); //Check File masih gagal
                 //Serial.println(F("RUNN cek_k")); //Mode debugging
                 //Serial.println(cek_k);
                 close_connection();
-                
-                /* Hasil cek data EKTP */
-                if(cek_k == 1)
+                if(cek_k == 0)
                 {
-                    if(total < 10)
+                    Serial.println(F("Data EKTP tidak ditemukan"));
+                    delay(1000);
+                    Serial.println(F("Memebuat data EKTP baru........."));
+                    int jumlah_ektp;
+                    open_files("test_2.txt", 1);
+                    check_jumlah_ektp(jumlah_ektp);
+                    close_connection();
+                    if(jumlah_ektp < 12)
                     {
-                        //Serial.println(cek_k);
                         boolean cek_fp = enroll_finger();
-                        //boolean cek_fp = true; //MODE:DEBUGGING
-                        delay(1000);
-                        //Serial.println(F("RUNN cek_fp")); //MODE:DEBUGGING
-                        //Serial.println(total); //MODE:DEBUGGING
+                        //boolean cek_fp = true; // Mode Debugging
                         if(cek_fp == true){ 
-                            //Serial.println(hasil);
-                            
-                            /* Menulis ulang data index EKTP */
-                            total = total + 1;  
-                            open_files("test_1.txt", 1); //Buka file tempat meyimpan data index file dengan permission READ
-                            String hasil = rewrite_file(nameku, nama_file, total);
-                            close_connection();
-                            Serial.println(hasil);
-                            
-                            /* Menambah data sidik jari pada ektp */
-                            String nama_file_str = String(nama_file) + ".txt";
+                        
+                            /* Menulis ulang data index ektp */
+                            String add_new_data = nameku + ":" + String(jumlah_ektp) + ",1;";
+                            //Serial.println(add_new_data);
+                            String nama_file_str = String(jumlah_ektp) + ".txt";
                             //Serial.println(nama_file_str);
+                            
+                            /* Menambad data jari */
                             open_files(nama_file_str, 0); //Buka file tempat meyimpan data index file dengan permission WRITE (kurang .txt)
-                            //id = 2; //MODE:DEBUGGING
+                            //write_files(id,1); //add data id from fingersensor
+                            //id = 2; //Mode Debugging
+                            Serial.println(id);
+                            delay(5);
                             int fp = write_files(String(id)+";", 0);
                             if(fp == 1){ // Add data id from fingersensor
                                 Serial.println(F("Berhasil menambahkan data jari"));
@@ -84,22 +81,36 @@ void check_nfc()
                             //Serial.println(total);
                             close_connection();
                             
-                            /* Menambah data hasil dari tulis ulang data index */
-                            remove_files("test_1.txt");
-                            open_files("test_1.txt", 0); //Buka file tempat meyimpan data index file dengan permission WRITE
-                            //write_files(hasil,0);
-                            if(write_files(hasil, 0) == 1){
-                                Serial.println(F("Berhasil merubah data index"));
-                            }else{
-                                Serial.println(F("Gagal merubah data index"));
+                            /* Menambahkan data jumlah ektp */
+                            jumlah_ektp += 1;
+                            //add_nfc_sdcard(nameku, (jumlah_ektp + 1), 0);
+                            String hasil_jumlah_ektp = String(jumlah_ektp) + ";";
+                            //Serial.println(hasil_jumlah_ektp);
+                            remove_files("test_2.txt");
+                            open_files("test_2.txt", 0); // Permission READ
+                            if(write_files(hasil_jumlah_ektp, 0))
+                            {   
+                                Serial.println(F("Jumlah Data EKTP baru berhasil ditambahkan"));
+                            }else
+                            {
+                                Serial.println(F("Jumlah Data EKTP baru Gagal ditambahkan"));
                             }
-                        }else
-                        {
-                            Serial.println(F("Berhasil menambahkan data pada fingerprint sensor"));
+                            close_connection();
+                            
+                            /* Menambahkan data index ektp */
+                            open_files("test_1.txt", 0); // Permission READ
+                            delay(5);
+                            if(write_files(add_new_data, 0))
+                            {   
+                                Serial.println(F("Data EKTP baru berhasil ditambahkan"));
+                            }else
+                            {
+                                Serial.println(F("Data EKTP baru Gagal ditambahkan"));
+                            }
                         }
                     }else
                     {
-                        Serial.println(F("Data jari telah penuh pada EKTP ini"));       
+                        Serial.println(F("Data EKTP pada sistem penuh"));
                     }
                 }
                 close_connection();
@@ -114,3 +125,4 @@ void check_nfc()
         }
     }
 }
+

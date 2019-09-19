@@ -16,7 +16,7 @@ File myFile;
 Adafruit_PN532 nfc(PN532_IRQ, PN532_RESET);
 SoftwareSerial mySerial(2, 3);
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
-uint8_t id = 0;
+uint8_t id;
 //int IN_PIN = 8;
 //String a[10];
 
@@ -41,3 +41,4 @@ void loop(void)
 {
     //check_nfc();
 }
+
